@@ -36,4 +36,4 @@ router.get('/graphiql', graphiql(async (ctx) => {
 }));
 ```
 
-Typically, you will want to populate the `query`, `variables`, and `result` fields from data in the Koa context, such as the query parameters or request body.
+Typically, you will want to populate the `query`, `variables`, and `result` fields from data in the Koa context, such as the query parameters or request body. `koa-graphiql` will do this for you by default.
