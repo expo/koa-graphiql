@@ -12,17 +12,16 @@ type GetOptions = (ctx: Object) => Promise<Options>;
 // Current latest version of GraphiQL
 const GRAPHIQL_VERSION = '0.4.4';
 
-export default function createGraphiQLMiddleware(getOptionsAsync: ?GetOptions) {
+export default function createMiddleware(getOptionsAsync: ?GetOptions) {
   return async function middleware(ctx) {
     let options = {};
     if (getOptionsAsync) {
       options = await getOptionsAsync(ctx);
     }
 
-    let html = renderHtml(options);
-    ctx.body = html;
+    ctx.body = renderHtml(options);
     ctx.type = 'text/html';
-  }
+  };
 }
 
 /**
@@ -35,7 +34,7 @@ function renderHtml(options: Options): string {
     JSON.stringify(options.variables, null, 2) :
     null;
   let resultString = options.result ?
-    JSON.stringify(data.result, null, 2) :
+    JSON.stringify(options.result, null, 2) :
     null;
 
   // How to Meet Ladies

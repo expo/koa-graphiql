@@ -11,14 +11,27 @@ npm i --save koa-graphiql
 Add it to your Koa app. You may want to use router middleware if your app serves more than GraphiQL.
 
 ```js
-import koaGraphiQL from 'koa-graphiql';
+import graphiql from 'koa-graphiql';
 
-router.get('/graphiql', koaGraphiQL(async (ctx) => {
+router.get('/graphiql', graphiql(async (ctx) => {
   return {
-    url,        // String of the base URL of the GraphQL endpoint
-    query,      // String to display in the query panel
-    result,     // Object to display in the result panel
-    variables,  // Object used to populate the "variables" panel
+    // String of the base URL of the GraphQL endpoint
+    url: '/graphql',
+
+    // String to display in the query panel
+    query: 'query Demo($token: String) { viewer(token: $token) { id } }',
+
+    // Object to display in the result panel
+    result: {
+      data: {
+        viewer: { id: 'account[ide]' }
+      }
+    },
+
+    // Object used to populate the "variables" panel
+    variables: {
+      token: 'eyJhbGciOiJIUzI1NiJ9.YWNjb3VudFtpZGVd.-w3FiHaq5jIFIOzHErgdEQGvXXG6wClBUDFDVgwUyx8'
+    },
   };
 }));
 ```

@@ -1,7 +1,7 @@
 {
   "name": "koa-graphiql",
   "version": "1.0.0",
-  "description": "Koa middleware to display GraphiQL, the interactive GraphQL UI",
+  "description": "Koa middleware to display GraphiQL",
   "main": "lib/middleware.js",
   "files": [
     "lib"
