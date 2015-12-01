@@ -14,14 +14,33 @@ const GRAPHIQL_VERSION = '0.4.4';
 
 export default function createMiddleware(getOptionsAsync: ?GetOptions) {
   return async function middleware(ctx) {
-    let options = {};
+    let options = getDefaultOptions(ctx);
     if (getOptionsAsync) {
-      options = await getOptionsAsync(ctx);
+      Object.assign(options, await getOptionsAsync(ctx));
     }
 
     ctx.body = renderHtml(options);
     ctx.type = 'text/html';
   };
+}
+
+function getDefaultOptions(ctx) {
+  let body = ctx.request.body || {};
+  let query = body.query || ctx.query.query;
+
+  let variables;
+  let variablesString = body.variables || ctx.query.variables;
+  try {
+    variables = JSON.parse(variablesString);
+  } catch (e) {}
+
+  let result;
+  let resultString = body.result || ctx.query.result;
+  try {
+    result = JSON.parse(resultString);
+  } catch (e) {}
+
+  return { query, variables, result };
 }
 
 /**
