@@ -21,17 +21,19 @@ router.get('/graphiql', graphiql(async (ctx) => {
     // String to display in the query panel
     query: 'query Demo($token: String) { viewer(token: $token) { id } }',
 
+    // Object used to populate the "variables" panel
+    variables: {
+      token: 'eyJhbGciOiJIUzI1NiJ9.YWNjb3VudFtpZGVd.-w3FiHaq5jIFIOzHErgdEQGvXXG6wClBUDFDVgwUyx8'
+    },
+
     // Object to display in the result panel
     result: {
       data: {
         viewer: { id: 'account[ide]' }
       }
     },
-
-    // Object used to populate the "variables" panel
-    variables: {
-      token: 'eyJhbGciOiJIUzI1NiJ9.YWNjb3VudFtpZGVd.-w3FiHaq5jIFIOzHErgdEQGvXXG6wClBUDFDVgwUyx8'
-    },
   };
 }));
 ```
+
+Typically, you will want to populate the `query`, `variables`, and `result` fields from data in the Koa context, such as the query parameters or request body.
