@@ -1,71 +1,86 @@
-/**
- * @flow
- */
+// @flow
+
 type Options = {
-  url: ?string;
-  query: ?string;
-  variables: ?Object;
-  result?: Object;
-};
-type GetOptions = (ctx: Object) => Promise<Options>;
+  url: ?string,
+  query: ?string,
+  variables: ?Object,
+  result?: Object,
+  operationName: ?string
+}
+type GetOptions = (ctx: Object) => Promise<Options>
 
-// Current latest version of GraphiQL
-const GRAPHIQL_VERSION = '0.4.4';
+// Current latest version of GraphiQL.
+const GRAPHIQL_VERSION = '0.11.2'
 
-export default function createMiddleware(getOptionsAsync: ?GetOptions) {
-  return async function middleware(ctx) {
-    let options = getDefaultOptions(ctx);
+export default function createMiddleware (getOptionsAsync: ?GetOptions) {
+  return async function middleware (ctx) {
+    let options = getDefaultOptions(ctx)
     if (getOptionsAsync) {
-      Object.assign(options, await getOptionsAsync(ctx));
+      Object.assign(options, await getOptionsAsync(ctx))
     }
 
-    ctx.body = renderHtml(options);
-    ctx.type = 'text/html';
-  };
+    ctx.body = renderHtml(options)
+    ctx.type = 'text/html'
+  }
+}
+// Ensures string values are safe to be used within a <script> tag.
+function safeSerialize (data) {
+  return data ? JSON.stringify(data).replace(/\//g, '\\/') : 'undefined'
 }
 
-function getDefaultOptions(ctx) {
-  let body = ctx.request.body || {};
-  let query = body.query || ctx.query.query;
+function getDefaultOptions (ctx) {
+  let body = ctx.request.body || {}
+  let query = body.query || ctx.query.query
 
-  let variables;
-  let variablesString = body.variables || ctx.query.variables;
+  let variables
+  let variablesString = body.variables || ctx.query.variables
   try {
-    variables = JSON.parse(variablesString);
+    variables = JSON.parse(variablesString)
   } catch (e) {}
 
-  let result;
-  let resultString = body.result || ctx.query.result;
+  let result
+  let resultString = body.result || ctx.query.result
   try {
-    result = JSON.parse(resultString);
+    result = JSON.parse(resultString)
   } catch (e) {}
 
-  return { query, variables, result };
+  return { query, variables, result }
 }
 
 /**
  * See express-graphql for the original implementation
  */
-function renderHtml(options: Options): string {
-  let url = options.url || '';
-  let queryString = options.query;
-  let variablesString = options.variables ?
-    JSON.stringify(options.variables, null, 2) :
-    null;
-  let resultString = options.result ?
-    JSON.stringify(options.result, null, 2) :
-    null;
-
+function renderHtml (options: Options): string {
+  let url = options.url || ''
+  let queryString = options.query
+  let variablesString = options.variables
+    ? JSON.stringify(options.variables, null, 2)
+    : null
+  let resultString = options.result
+    ? JSON.stringify(options.result, null, 2)
+    : null
+  const operationName = options.operationName
   // How to Meet Ladies
-  return (
-`<!DOCTYPE html>
+  const cdnUrl = '//cdn.jsdelivr.net/'
+  return `<!DOCTYPE html>
 <html>
 <head>
-  <link href="//cdn.jsdelivr.net/graphiql/${GRAPHIQL_VERSION}/graphiql.css" rel="stylesheet" />
-  <script src="//cdn.jsdelivr.net/fetch/0.9.0/fetch.min.js"></script>
-  <script src="//cdn.jsdelivr.net/react/0.14.2/react.min.js"></script>
-  <script src="//cdn.jsdelivr.net/react/0.14.2/react-dom.min.js"></script>
-  <script src="//cdn.jsdelivr.net/graphiql/${GRAPHIQL_VERSION}/graphiql.min.js"></script>
+  <meta charset="utf-8" />
+  <title>GraphiQL</title>
+  <meta name="robots" content="noindex" />
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      width: 100%;
+    }
+  </style>
+  <link href="${cdnUrl}npm/graphiql@${GRAPHIQL_VERSION}/graphiql.css" rel="stylesheet" />
+  <script src="${cdnUrl}fetch/0.9.0/fetch.min.js"></script>
+  <script src="${cdnUrl}react/15.4.2/react.min.js"></script>
+  <script src="${cdnUrl}react/15.4.2/react-dom.min.js"></script>
+  <script src="${cdnUrl}npm/graphiql@${GRAPHIQL_VERSION}/graphiql.min.js"></script>
 </head>
 <body>
   <script>
@@ -80,7 +95,9 @@ function renderHtml(options: Options): string {
     });
     // Produce a Location query string from a parameter object.
     function locationQuery(params) {
-      return '?' + Object.keys(params).map(function (key) {
+      return '?' + Object.keys(params).filter(function (key) {
+        return Boolean(params[key]);
+      }).map(function (key) {
         return encodeURIComponent(key) + '=' +
           encodeURIComponent(params[key]);
       }).join('&');
@@ -109,7 +126,13 @@ function renderHtml(options: Options): string {
         body: JSON.stringify(graphQLParams),
         credentials: 'include',
       }).then(function (response) {
-        return response.json();
+        return response.text();
+      }).then(function (responseBody) {
+        try {
+          return JSON.parse(responseBody);
+        } catch (error) {
+          return responseBody;
+        }
       });
     }
     // When the query and variables string is edited, update the URL bar so
@@ -122,23 +145,28 @@ function renderHtml(options: Options): string {
       parameters.variables = newVariables;
       updateURL();
     }
+    function onEditOperationName(newOperationName) {
+      parameters.operationName = newOperationName;
+      updateURL();
+    }
     function updateURL() {
       history.replaceState(null, null, locationQuery(parameters));
     }
     // Render <GraphiQL /> into the body.
-    React.render(
+    ReactDOM.render(
       React.createElement(GraphiQL, {
         fetcher: graphQLFetcher,
         onEditQuery: onEditQuery,
         onEditVariables: onEditVariables,
-        query: ${JSON.stringify(queryString)},
-        response: ${JSON.stringify(resultString)},
-        variables: ${JSON.stringify(variablesString)}
+        onEditOperationName: onEditOperationName,
+        query: ${safeSerialize(queryString)},
+        response: ${safeSerialize(resultString)},
+        variables: ${safeSerialize(variablesString)},
+        operationName: ${safeSerialize(operationName)},
       }),
       document.body
     );
   </script>
 </body>
 </html>`
-  );
 }

@@ -1,13 +1,15 @@
 {
   "name": "koa-graphiql",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Koa middleware to display GraphiQL",
   "main": "lib/middleware.js",
   "files": [
     "lib"
   ],
   "scripts": {
-    "build": "babel -d lib src"
+    "build": "babel -d lib src",
+    "lint": "standard",
+    "prepublish": "npm run lint"
   },
   "repository": {
     "type": "git",
@@ -29,10 +31,23 @@
   },
   "homepage": "https://github.com/exponentjs/koa-graphiql#readme",
   "devDependencies": {
-    "babel-core": "^6.2.1",
-    "babel-plugin-syntax-flow": "^6.1.18",
-    "babel-plugin-transform-es2015-modules-commonjs": "^6.2.0",
-    "babel-plugin-transform-flow-strip-types": "^6.1.18",
-    "babel-preset-stage-3": "^6.1.18"
+    "babel-core": "^6.25.0",
+    "babel-plugin-syntax-flow": "^6.18.0",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.24.1",
+    "babel-plugin-transform-flow-strip-types": "^6.22.0",
+    "babel-preset-stage-3": "^6.24.1",
+    "standard": "^10.0.2",
+    "babel-eslint": "^7.2.3",
+    "eslint-plugin-flowtype": "^2.35.0"
+  },
+  "standard": {
+    "plugins": [
+      "flowtype"
+    ],
+    "parser": "babel-eslint",
+    "ignore": [
+      "dist/",
+      "flow-typed/"
+    ]
   }
 }
