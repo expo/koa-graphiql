@@ -4,5 +4,5 @@
     "syntax-flow",
     "transform-es2015-modules-commonjs",
     "transform-flow-strip-types",
-  ],
+  ]
 }
